@@ -285,10 +285,7 @@ class Client extends EventEmitter {
             };
 
             const handleLinkWithPhoneNumber = async () => {
-                const LINK_WITH_PHONE_BUTTON = '[data-testid="link-device-qrcode-alt-linking-hint"]';
-                const PHONE_NUMBER_INPUT = '[data-testid="link-device-phone-number-input"]';
-                const NEXT_BUTTON = '[data-testid="link-device-phone-number-entry-next-button"]';
-                const CODE_CONTAINER = '[data-testid="link-with-phone-number-code-cells"]';
+                const CODE_CONTAINER = 'div[aria-details]';
                 const GENERATE_NEW_CODE_BUTTON = '[data-testid="popup-controls-ok"]';
                 const LINK_WITH_PHONE_VIEW = '[data-testid="link-device-phone-number-code-view"]';
 
@@ -301,23 +298,31 @@ class Client extends EventEmitter {
                     this.emit(Events.CODE_RECEIVED, code);
                 });
                 const clickOnLinkWithPhoneButton = async () => {
-                    await page.waitForSelector(LINK_WITH_PHONE_BUTTON, { timeout: 0 });                    
-                    await page.click(LINK_WITH_PHONE_BUTTON);
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Enter');
+                    await page.waitForTimeout(800);
                 };
 
                 const typePhoneNumber = async () => {
-                    await page.waitForSelector(PHONE_NUMBER_INPUT);
-                    const inputValue = await page.$eval(PHONE_NUMBER_INPUT, el => el.value);
-                    await page.click(PHONE_NUMBER_INPUT);
-                    for (let i = 0; i < inputValue.length; i++) {
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    for (let i = 0; i < 10; i++) {
                         await page.keyboard.press('Backspace');
                     }
-                    await page.type(PHONE_NUMBER_INPUT, this.options.linkingMethod.phone.number);
+                    const numberWithPlus = '+' + this.options.linkingMethod.phone.number;
+                    await page.keyboard.type(numberWithPlus);
+                };
+
+                const clickNextButton = async () => {
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Enter');
+                    await page.waitForTimeout(800);
                 };
 
                 await clickOnLinkWithPhoneButton();
                 await typePhoneNumber();
-                await page.click(NEXT_BUTTON);
+                await clickNextButton();
                   
                 await page.evaluate(async function (selectors) {
                     function waitForElementToExist(selector, timeout = 60000) {
@@ -363,36 +368,8 @@ class Client extends EventEmitter {
                     let code = getCode();
 
                     window.codeChanged(code);
-
-                    const entirePageObserver = new MutationObserver(() => {
-                        const generateNewCodeButton = document.querySelector(selectors.GENERATE_NEW_CODE_BUTTON);
-                        if (generateNewCodeButton) {
-                            generateNewCodeButton.click();
-                            return;
-                        }
-                    });
-                    entirePageObserver.observe(document, {
-                        subtree: true,
-                        childList: true,
-                    });
-                    
-                    const linkWithPhoneView = document.querySelector(selectors.LINK_WITH_PHONE_VIEW);
-                    const linkWithPhoneViewObserver = new MutationObserver(() => {
-                        const newCode = getCode();
-                        if (newCode !== code) {
-                            window.codeChanged(newCode);
-                            code = newCode;
-                        }
-                    });
-                    linkWithPhoneViewObserver.observe(linkWithPhoneView, {
-                        subtree: true,
-                        childList: true,
-                    });
-
                 }, {
                     CODE_CONTAINER,
-                    GENERATE_NEW_CODE_BUTTON,
-                    LINK_WITH_PHONE_VIEW
                 });
             };
 
