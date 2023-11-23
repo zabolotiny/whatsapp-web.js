@@ -285,6 +285,7 @@ class Client extends EventEmitter {
             };
 
             const handleLinkWithPhoneNumber = async () => {
+                const QR_CONTAINER = 'div[data-ref]';
                 const CODE_CONTAINER = 'div[aria-details]';
                 const GENERATE_NEW_CODE_BUTTON = '[data-testid="popup-controls-ok"]';
                 const LINK_WITH_PHONE_VIEW = '[data-testid="link-device-phone-number-code-view"]';
@@ -320,6 +321,7 @@ class Client extends EventEmitter {
                     await page.waitForTimeout(800);
                 };
 
+                await page.waitForSelector(QR_CONTAINER, { timeout: 3000 });
                 await clickOnLinkWithPhoneButton();
                 await typePhoneNumber();
                 await clickNextButton();
