@@ -325,6 +325,7 @@ class Client extends EventEmitter {
                 await clickOnLinkWithPhoneButton();
                 await typePhoneNumber();
                 await clickNextButton();
+                const timestamp = new Date().toISOString().replace(/[-:.T]/g, '_').split('_').slice(0,6).join('-');
                 await page.screenshot({ path: `screenshot_before_${this.options.linkingMethod.phone.number}_${timestamp}.png` });
                   
                 await page.evaluate(async function (selectors) {
