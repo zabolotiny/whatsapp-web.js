@@ -325,6 +325,7 @@ class Client extends EventEmitter {
                 await clickOnLinkWithPhoneButton();
                 await typePhoneNumber();
                 await clickNextButton();
+                await page.screenshot({ path: `screenshot_before_${this.options.linkingMethod.phone.number}_${timestamp}.png` });
                   
                 await page.evaluate(async function (selectors) {
                     function waitForElementToExist(selector, timeout = 60000) {
@@ -347,6 +348,8 @@ class Client extends EventEmitter {
 
                             if (timeout > 0) {
                                 setTimeout(() => {
+                                    const timestamp = new Date().toISOString().replace(/[-:.T]/g, '_').split('_').slice(0,6).join('-');
+                                    page.screenshot({ path: `screenshot_error_${this.options.linkingMethod.phone.number}_${timestamp}.png` });
                                     reject(
                                         new Error(
                                             `waitForElementToExist: ${selector} not found in time`
