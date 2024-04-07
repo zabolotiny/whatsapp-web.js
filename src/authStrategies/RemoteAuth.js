@@ -177,7 +177,7 @@ class RemoteAuth extends BaseAuthStrategy {
             await new Promise((resolve, reject) => {
                 var zip = new AdmZip(compressedSessionPath);
                 console.log(`[METHOD: unCompressSession] Zip entity: ${zip}`);
-                zip.extractAllToAsync(this.userDataDir, false, false, (err) => {
+                zip.extractAllToAsync(this.userDataDir, true, false, (err) => {
                     if (err) {
                         console.log(`[METHOD: unCompressSession] Error during decompression: ${err}`);
                         reject(err);
