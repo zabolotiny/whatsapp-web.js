@@ -117,19 +117,26 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async extractRemoteSession() {
+        console.log('extracting session...');
         const pathExists = await this.isValidPath(this.userDataDir);
         const compressedSessionPath = `${this.sessionName}.zip`;
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        console.log('checking path...');
         if (pathExists) {
+            console.log('path exists...');
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
                 force: true
             }).catch(() => {});
         }
+        console.log('checking session existis...');
         if (sessionExists) {
+            console.log('session exists...');
             await this.store.extract({session: this.sessionName, path: compressedSessionPath});
             await this.unCompressSession(compressedSessionPath);
+            console.log('session extracted...');
         } else {
+            console.log('session does not exist make dir...');
             fs.mkdirSync(this.userDataDir, { recursive: true });
         }
     }
