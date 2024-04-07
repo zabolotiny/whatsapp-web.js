@@ -104,9 +104,10 @@ class Client extends EventEmitter {
      */
     async initialize() {
         let [browser, page] = [null, null];
-
+        console.log('beforeBrowserInitialized...');
         await this.authStrategy.beforeBrowserInitialized();
 
+        console.log('beforeBrowserInitialized...done');
         const puppeteerOpts = this.options.puppeteer;
         if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
             browser = await puppeteer.connect(puppeteerOpts);
