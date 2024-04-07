@@ -4,11 +4,13 @@
 try {
     var fs = require('fs-extra');
     var AdmZip = require('adm-zip');
+    var StreamZip = require('node-stream-zip');
     var archiver = require('archiver');
 } catch {
     fs = undefined;
     AdmZip = undefined;
     archiver = undefined;
+    StreamZip = undefined;
 }
 
 const path = require('path');
@@ -167,36 +169,26 @@ class RemoteAuth extends BaseAuthStrategy {
         console.log(`[METHOD: unCompressSession] Starting decompression for '${compressedSessionPath}'.`);
     
         try {
-            // Ensure the target directory exists and is empty
             console.log(`[METHOD: unCompressSession] Clearing path '${this.userDataDir}'.`);
             await fs.promises.rm(this.userDataDir, { recursive: true, force: true });
             await fs.promises.mkdir(this.userDataDir, { recursive: true });
     
             console.log(`[METHOD: unCompressSession] Extracting to '${this.userDataDir}'.`);
     
-            await new Promise((resolve, reject) => {
-                var zip = new AdmZip(compressedSessionPath);
-                console.log(`[METHOD: unCompressSession] Zip entity: ${zip}`);
-                zip.extractAllToAsync(this.userDataDir, true, false, (err) => {
-                    if (err) {
-                        console.log(`[METHOD: unCompressSession] Error during decompression: ${err}`);
-                        reject(err);
-                    } else {
-                        console.log(`[METHOD: unCompressSession] Decompression successful.`);
-                        resolve();
-                    }
-                });
-            });
+            const zip = new StreamZip.async({ file: compressedSessionPath });
+            await zip.extract(null, this.userDataDir);
+            await zip.close();
+    
+            console.log(`[METHOD: unCompressSession] Decompression successful.`);
     
             console.log(`[METHOD: unCompressSession] Removing compressed file: '${compressedSessionPath}'.`);
             await fs.promises.unlink(compressedSessionPath);
             console.log(`[METHOD: unCompressSession] Compressed file removed.`);
         } catch (error) {
             console.log(`[METHOD: unCompressSession] Error in unCompressSession method: ${error}`);
-            throw error;  // Rethrowing the error after logging it
+            throw error;
         }
     }
-    
 
     async deleteMetadata() {
         const sessionDirs = [this.tempDir, path.join(this.tempDir, 'Default')];
