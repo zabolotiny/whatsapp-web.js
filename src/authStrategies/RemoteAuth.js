@@ -164,18 +164,33 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async unCompressSession(compressedSessionPath) {
-        await new Promise((resolve, reject) => {
-            var zip = new AdmZip(compressedSessionPath);
-            zip.extractAllToAsync(this.userDataDir, false, false, (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
+        console.log(`[METHOD: unCompressSession] Starting decompression for '${compressedSessionPath}'.`);
+    
+        try {
+            await new Promise((resolve, reject) => {
+                var zip = new AdmZip(compressedSessionPath);
+                console.log(`[METHOD: unCompressSession] Extracting to '${this.userDataDir}'.`);
+                
+                zip.extractAllToAsync(this.userDataDir, false, false, (err) => {
+                    if (err) {
+                        console.log(`[METHOD: unCompressSession] Error during decompression: ${err}`);
+                        reject(err);
+                    } else {
+                        console.log(`[METHOD: unCompressSession] Decompression successful.`);
+                        resolve();
+                    }
+                });
             });
-        });
-        await fs.promises.unlink(compressedSessionPath);
+    
+            console.log(`[METHOD: unCompressSession] Removing compressed file: '${compressedSessionPath}'.`);
+            await fs.promises.unlink(compressedSessionPath);
+            console.log(`[METHOD: unCompressSession] Compressed file removed.`);
+        } catch (error) {
+            console.log(`[METHOD: unCompressSession] Error in unCompressSession method: ${error}`);
+            throw error;  // Rethrowing the error after logging it
+        }
     }
+    
 
     async deleteMetadata() {
         const sessionDirs = [this.tempDir, path.join(this.tempDir, 'Default')];
